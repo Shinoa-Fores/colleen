@@ -1,15 +1,15 @@
 #|
  This file is a part of Colleen
- (c) 2014 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
+ (c) 2013 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:org.shirakumo.colleen)
-(defpackage #:org.shirakumo.colleen.mod.google
-  (:nicknames #:co-google)
-  (:use #:cl #:colleen #:events #:split-sequence)
-  (:shadow #:timezone))
-(in-package #:org.shirakumo.colleen.mod.google)
+(in-package :org.tymoonnext.colleen)
+(defpackage org.tymoonnext.colleen.mod.google
+  (:nicknames :co-google)
+  (:use :cl :colleen :events :split-sequence)
+  (:shadow :timezone))
+(in-package :org.tymoonnext.colleen.mod.google)
 
 (defvar *language-code-map*)
 
@@ -43,6 +43,7 @@
   (let ((parameters `(("key" . ,api-key) ("q" . ,text) ("target" . ,(ensure-known-language to)))))
     (when from (push `("source" . ,(ensure-known-language from)) parameters))
     (let ((json (json-request "https://www.googleapis.com/language/translate/v2" parameters)))
+      (print json)
       (let ((data (first (cdr (assoc :translations (cdr (assoc :data json)))))))
         (values (plump:decode-entities (cdr (assoc :translated-text data)))
                 (cdr (assoc :detected-source-language data)))))))
@@ -172,6 +173,9 @@
     (if (string-equal (cdr (assoc :status json)) "ok")
         (mapcar #'(lambda (a) (cdr (assoc :elements a))) (cdr (assoc :rows json)))
         (error (cdr (assoc :status json))))))
+
+(define-command (google search) (&rest query) (:documentation "Synonym to 'search google'")
+  (relay-command event (format NIL "search google ~{~a~^ ~}" query)))
 
 (defun great-circle-distance (lng1 lat1 lng2 lat2)
   (flet ((rad (x) (/ (* x Pi) 180))
